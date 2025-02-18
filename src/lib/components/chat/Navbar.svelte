@@ -24,6 +24,7 @@
 	import UserMenu from '$lib/components/layout/Sidebar/UserMenu.svelte';
 	import MenuLines from '../icons/MenuLines.svelte';
 	import AdjustmentsHorizontal from '../icons/AdjustmentsHorizontal.svelte';
+	import Info from '../icons/Info.svelte';
 
 	import PencilSquare from '../icons/PencilSquare.svelte';
 
@@ -77,6 +78,14 @@
 				{#if showModelSelector}
 					<ModelSelector bind:selectedModels showSetDefault={!shareEnabled} />
 				{/if}
+				<div
+					class="flex flex-row mx-auto w-fit border border-orange-400 rounded-full pr-4 pl-2 py-1 bg-opacity-25 bg-orange-400"
+				>
+					<Info className="my-auto h-6 text-orange-400" />
+					<p class="w-fit h-fit ml-1">
+						Do not enter any client or otherwise sensitive information.
+					</p>
+				</div>
 			</div>
 
 			<div class="self-start flex flex-none items-center text-gray-600 dark:text-gray-400">
