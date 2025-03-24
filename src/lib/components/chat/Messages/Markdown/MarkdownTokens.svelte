@@ -17,6 +17,7 @@
 	import Collapsible from '$lib/components/common/Collapsible.svelte';
 	import Tooltip from '$lib/components/common/Tooltip.svelte';
 	import ArrowDownTray from '$lib/components/icons/ArrowDownTray.svelte';
+	import Source from './Source.svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -76,7 +77,7 @@
 	{#if token.type === 'hr'}
 		<hr class=" border-gray-100 dark:border-gray-850" />
 	{:else if token.type === 'heading'}
-		<svelte:element this={headerComponent(token.depth)}>
+		<svelte:element this={headerComponent(token.depth)} dir="auto">
 			<MarkdownInlineTokens id={`${id}-${tokenIdx}-h`} tokens={token.tokens} {onSourceClick} />
 		</svelte:element>
 	{:else if token.type === 'code'}
@@ -88,14 +89,14 @@
 				code={token?.text ?? ''}
 				{attributes}
 				{save}
-				on:code={(e) => {
-					dispatch('code', e.detail);
+				onCode={(value) => {
+					dispatch('code', value);
 				}}
-				on:save={(e) => {
+				onSave={(value) => {
 					dispatch('update', {
 						raw: token.raw,
 						oldContent: token.text,
-						newContent: e.detail
+						newContent: value
 					});
 				}}
 			/>
@@ -176,7 +177,7 @@
 		{#if token.ordered}
 			<ol start={token.start || 1}>
 				{#each token.items as item, itemIdx}
-					<li dir="auto">
+					<li dir="auto" class="text-start">
 						{#if item?.task}
 							<input
 								class=" translate-y-[1px] -translate-x-1"
@@ -208,7 +209,7 @@
 		{:else}
 			<ul>
 				{#each token.items as item, itemIdx}
-					<li dir="auto">
+					<li dir="auto" class="text-start">
 						{#if item?.task}
 							<input
 								class=" translate-y-[1px] -translate-x-1"
@@ -239,7 +240,12 @@
 			</ul>
 		{/if}
 	{:else if token.type === 'details'}
-		<Collapsible title={token.summary} attributes={token?.attributes} className="w-full space-y-1">
+		<Collapsible
+			title={token.summary}
+			attributes={token?.attributes}
+			className="w-full space-y-1"
+			dir="auto"
+		>
 			<div class=" mb-1.5" slot="content">
 				<svelte:self
 					id={`${id}-${tokenIdx}-d`}
@@ -256,6 +262,8 @@
 			{@html html}
 		{:else if token.text.includes(`<iframe src="${WEBUI_BASE_URL}/api/v1/files/`)}
 			{@html `${token.text}`}
+		{:else if token.text.includes(`<source_id`)}
+			<Source {id} {token} onClick={onSourceClick} />
 		{:else}
 			{token.text}
 		{/if}
