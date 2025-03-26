@@ -38,6 +38,7 @@
 	import Tooltip from '../common/Tooltip.svelte';
 	import FileItem from '../common/FileItem.svelte';
 	import Image from '../common/Image.svelte';
+	import Info from '../icons/Info.svelte';
 
 	import XMark from '../icons/XMark.svelte';
 	import Headphone from '../icons/Headphone.svelte';
@@ -543,6 +544,15 @@
 							filesInputElement.value = '';
 						}}
 					/>
+
+					<div
+						class="flex flex-row mx-auto mb-2 w-fit border border-orange-400 rounded-full pr-4 pl-2 py-1 bg-orange-400/10"
+					>
+						<Info className="my-auto h-5 text-orange-400" />
+						<p class="text-sm w-fit h-fit ml-1">
+							Do not enter any client or otherwise sensitive information.
+						</p>
+					</div>
 
 					{#if recording}
 						<VoiceRecording
