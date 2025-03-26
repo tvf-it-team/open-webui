@@ -79,7 +79,7 @@
 					<ModelSelector bind:selectedModels showSetDefault={!shareEnabled} />
 				{/if}
 				<div
-					class="flex flex-row mx-auto w-fit border border-orange-400 rounded-full pr-4 pl-2 py-1 bg-opacity-25 bg-orange-400"
+					class="flex flex-row mx-auto w-fit border border-orange-400 rounded-full pr-4 pl-2 py-1 bg-orange-400/25"
 				>
 					<Info className="my-auto h-6 text-orange-400" />
 					<p class="w-fit h-fit ml-1">
