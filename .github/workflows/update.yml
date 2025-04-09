@@ -3,6 +3,7 @@ name: Update to Latest Release
 on:
   schedule:
     - cron: '0 0 * * *'  # Runs daily at midnight
+  workflow_dispatch:
 
 jobs:
   update:
