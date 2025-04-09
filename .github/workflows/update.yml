@@ -11,6 +11,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          repository: tvf-it-team/open-webui
+          ref: main  # Explicitly checkout your fork's main branch
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 1
 
       - name: Set up Git
         run: |
@@ -27,8 +32,10 @@ jobs:
         id: latest_tag
         run: echo "latest_tag=$(git tag --sort=-v:refname | head -n 1)" >> $GITHUB_OUTPUT
 
-      - name: Checkout latest tag
-        run: git checkout tags/${{ steps.latest_tag.outputs.latest_tag }} -b update-to-${{ steps.latest_tag.outputs.latest_tag }}
+      - name: Checkout latest tag and preserve custom-changes
+        run: |
+          git checkout tags/${{ steps.latest_tag.outputs.latest_tag }} -b update-to-${{ steps.latest_tag.outputs.latest_tag }}
+          git checkout main -- custom-changes  # Restore custom-changes from your main branch
 
       - name: Copy custom binary files
         run: cp -r custom-changes/* .
