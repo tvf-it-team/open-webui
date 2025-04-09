@@ -1,0 +1,13 @@
+diff --git a/src/app.html b/src/app.html
+index e64e6d583..4149e46bf 100644
+--- a/src/app.html
++++ b/src/app.html
+@@ -101,7 +101,7 @@
+ 			})();
+ 		</script>
+ 
+-		<title>Open WebUI</title>
++		<title>TVF AI Tools</title>
+ 
+ 		%sveltekit.head%
+ 	</head>
