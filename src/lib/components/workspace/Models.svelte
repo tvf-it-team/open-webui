@@ -34,6 +34,7 @@
 	import Switch from '../common/Switch.svelte';
 	import Spinner from '../common/Spinner.svelte';
 	import { capitalizeFirstLetter } from '$lib/utils';
+	import XMark from '../icons/XMark.svelte';
 
 	let shiftKey = false;
 
@@ -51,12 +52,18 @@
 	let group_ids = [];
 
 	$: if (models) {
-		filteredModels = models.filter(
-			(m) => searchValue === '' || m.name.toLowerCase().includes(searchValue.toLowerCase())
-		);
+		filteredModels = models.filter((m) => {
+			if (query === '') return true;
+			const lowerQuery = query.toLowerCase();
+			return (
+				(m.name || '').toLowerCase().includes(lowerQuery) ||
+				(m.user?.name || '').toLowerCase().includes(lowerQuery) || // Search by user name
+				(m.user?.email || '').toLowerCase().includes(lowerQuery) // Search by user email
+			);
+		});
 	}
 
-	let searchValue = '';
+	let query = '';
 
 	const deleteModelHandler = async (model) => {
 		const res = await deleteModelById(localStorage.token, model.id).catch((e) => {
@@ -93,13 +100,10 @@
 
 		const tab = await window.open(`${url}/models/create`, '_blank');
 
-		// Define the event handler function
 		const messageHandler = (event) => {
 			if (event.origin !== url) return;
 			if (event.data === 'loaded') {
 				tab.postMessage(JSON.stringify(model), '*');
-
-				// Remove the event listener after handling the message
 				window.removeEventListener('message', messageHandler);
 			}
 		};
@@ -199,7 +203,7 @@
 
 <svelte:head>
 	<title>
-		{$i18n.t('Models')} | {$WEBUI_NAME}
+		{$i18n.t('Models')} • {$WEBUI_NAME}
 	</title>
 </svelte:head>
 
@@ -229,9 +233,22 @@
 				</div>
 				<input
 					class=" w-full text-sm py-1 rounded-r-xl outline-hidden bg-transparent"
-					bind:value={searchValue}
+					bind:value={query}
 					placeholder={$i18n.t('Search Models')}
 				/>
+
+				{#if query}
+					<div class="self-center pl-1.5 translate-y-[0.5px] rounded-l-xl bg-transparent">
+						<button
+							class="p-0.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 transition"
+							on:click={() => {
+								query = '';
+							}}
+						>
+							<XMark className="size-3" strokeWidth="2" />
+						</button>
+					</div>
+				{/if}
 			</div>
 
 			<div>
@@ -246,7 +263,7 @@
 	</div>
 
 	<div class=" my-2 mb-5 gap-2 grid lg:grid-cols-2 xl:grid-cols-3" id="model-list">
-		{#each filteredModels as model}
+		{#each filteredModels as model (model.id)}
 			<div
 				class=" flex flex-col cursor-pointer w-full px-3 py-2 dark:hover:bg-white/5 hover:bg-black/5 rounded-xl transition"
 				id="model-item-{model.id}"
@@ -477,29 +494,33 @@
 					</div>
 				</button>
 
-				<button
-					class="flex text-xs items-center space-x-1 px-3 py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 transition"
-					on:click={async () => {
-						downloadModels(models);
-					}}
-				>
-					<div class=" self-center mr-2 font-medium line-clamp-1">{$i18n.t('Export Models')}</div>
+				{#if models.length}
+					<button
+						class="flex text-xs items-center space-x-1 px-3 py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 transition"
+						on:click={async () => {
+							downloadModels(models);
+						}}
+					>
+						<div class=" self-center mr-2 font-medium line-clamp-1">
+							{$i18n.t('Export Models')} ({models.length})
+						</div>
 
-					<div class=" self-center">
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							viewBox="0 0 16 16"
-							fill="currentColor"
-							class="w-3.5 h-3.5"
-						>
-							<path
-								fill-rule="evenodd"
-								d="M4 2a1.5 1.5 0 0 0-1.5 1.5v9A1.5 1.5 0 0 0 4 14h8a1.5 1.5 0 0 0 1.5-1.5V6.621a1.5 1.5 0 0 0-.44-1.06L9.94 2.439A1.5 1.5 0 0 0 8.878 2H4Zm4 3.5a.75.75 0 0 1 .75.75v2.69l.72-.72a.75.75 0 1 1 1.06 1.06l-2 2a.75.75 0 0 1-1.06 0l-2-2a.75.75 0 0 1 1.06-1.06l.72.72V6.25A.75.75 0 0 1 8 5.5Z"
-								clip-rule="evenodd"
-							/>
-						</svg>
-					</div>
-				</button>
+						<div class=" self-center">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 16 16"
+								fill="currentColor"
+								class="w-3.5 h-3.5"
+							>
+								<path
+									fill-rule="evenodd"
+									d="M4 2a1.5 1.5 0 0 0-1.5 1.5v9A1.5 1.5 0 0 0 4 14h8a1.5 1.5 0 0 0 1.5-1.5V6.621a1.5 1.5 0 0 0-.44-1.06L9.94 2.439A1.5 1.5 0 0 0 8.878 2H4Zm4 3.5a.75.75 0 0 1 .75.75v2.69l.72-.72a.75.75 0 1 1 1.06 1.06l-2 2a.75.75 0 0 1-1.06 0l-2-2a.75.75 0 0 1 1.06-1.06l.72.72V6.25A.75.75 0 0 1 8 5.5Z"
+									clip-rule="evenodd"
+								/>
+							</svg>
+						</div>
+					</button>
+				{/if}
 			</div>
 		</div>
 	{/if}

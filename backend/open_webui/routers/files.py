@@ -1,6 +1,7 @@
 import logging
 import os
 import uuid
+from fnmatch import fnmatch
 from pathlib import Path
 from typing import Optional
 from urllib.parse import quote
@@ -18,6 +19,8 @@ from fastapi import (
 from fastapi.responses import FileResponse, StreamingResponse
 from open_webui.constants import ERROR_MESSAGES
 from open_webui.env import SRC_LOG_LEVELS
+
+from open_webui.models.users import Users
 from open_webui.models.files import (
     FileForm,
     FileModel,
@@ -82,19 +85,41 @@ def upload_file(
     request: Request,
     file: UploadFile = File(...),
     user=Depends(get_verified_user),
-    file_metadata: dict = {},
+    file_metadata: dict = None,
     process: bool = Query(True),
 ):
     log.info(f"file.content_type: {file.content_type}")
+
+    file_metadata = file_metadata if file_metadata else {}
     try:
         unsanitized_filename = file.filename
         filename = os.path.basename(unsanitized_filename)
+
+        file_extension = os.path.splitext(filename)[1]
+        if request.app.state.config.ALLOWED_FILE_EXTENSIONS:
+            request.app.state.config.ALLOWED_FILE_EXTENSIONS = [
+                ext for ext in request.app.state.config.ALLOWED_FILE_EXTENSIONS if ext
+            ]
+
+            if file_extension not in request.app.state.config.ALLOWED_FILE_EXTENSIONS:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=ERROR_MESSAGES.DEFAULT(
+                        f"File type {file_extension} is not allowed"
+                    ),
+                )
 
         # replace filename with uuid
         id = str(uuid.uuid4())
         name = filename
         filename = f"{id}_{filename}"
-        contents, file_path = Storage.upload_file(file.file, filename)
+        tags = {
+            "OpenWebUI-User-Email": user.email,
+            "OpenWebUI-User-Id": user.id,
+            "OpenWebUI-User-Name": user.name,
+            "OpenWebUI-File-Id": id,
+        }
+        contents, file_path = Storage.upload_file(file.file, filename, tags)
 
         file_item = Files.insert_new_file(
             user.id,
@@ -114,22 +139,34 @@ def upload_file(
         )
         if process:
             try:
-                if file.content_type in [
-                    "audio/mpeg",
-                    "audio/wav",
-                    "audio/ogg",
-                    "audio/x-m4a",
-                ]:
-                    file_path = Storage.get_file(file_path)
-                    result = transcribe(request, file_path)
-                    process_file(
-                        request,
-                        ProcessFileForm(file_id=id, content=result.get("text", "")),
-                        user=user,
+                if file.content_type:
+                    if file.content_type.startswith("audio/") or file.content_type in {
+                        "video/webm"
+                    }:
+                        file_path = Storage.get_file(file_path)
+                        result = transcribe(request, file_path)
+
+                        process_file(
+                            request,
+                            ProcessFileForm(file_id=id, content=result.get("text", "")),
+                            user=user,
+                        )
+                    elif file.content_type not in [
+                        "image/png",
+                        "image/jpeg",
+                        "image/gif",
+                        "video/mp4",
+                        "video/ogg",
+                        "video/quicktime",
+                    ]:
+                        process_file(request, ProcessFileForm(file_id=id), user=user)
+                else:
+                    log.info(
+                        f"File type {file.content_type} is not provided, but trying to process anyway"
                     )
-                elif file.content_type not in ["image/png", "image/jpeg", "image/gif"]:
                     process_file(request, ProcessFileForm(file_id=id), user=user)
-                    file_item = Files.get_file_by_id(id=id)
+
+                file_item = Files.get_file_by_id(id=id)
             except Exception as e:
                 log.exception(e)
                 log.error(f"Error processing file: {file_item.id}")
@@ -162,12 +199,60 @@ def upload_file(
 
 
 @router.get("/", response_model=list[FileModelResponse])
-async def list_files(user=Depends(get_verified_user)):
+async def list_files(user=Depends(get_verified_user), content: bool = Query(True)):
     if user.role == "admin":
         files = Files.get_files()
     else:
         files = Files.get_files_by_user_id(user.id)
+
+    if not content:
+        for file in files:
+            if "content" in file.data:
+                del file.data["content"]
+
     return files
+
+
+############################
+# Search Files
+############################
+
+
+@router.get("/search", response_model=list[FileModelResponse])
+async def search_files(
+    filename: str = Query(
+        ...,
+        description="Filename pattern to search for. Supports wildcards such as '*.txt'",
+    ),
+    content: bool = Query(True),
+    user=Depends(get_verified_user),
+):
+    """
+    Search for files by filename with support for wildcard patterns.
+    """
+    # Get files according to user role
+    if user.role == "admin":
+        files = Files.get_files()
+    else:
+        files = Files.get_files_by_user_id(user.id)
+
+    # Get matching files
+    matching_files = [
+        file for file in files if fnmatch(file.filename.lower(), filename.lower())
+    ]
+
+    if not matching_files:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No files found matching the pattern.",
+        )
+
+    if not content:
+        for file in matching_files:
+            if "content" in file.data:
+                del file.data["content"]
+
+    return matching_files
 
 
 ############################
@@ -377,6 +462,13 @@ async def get_html_file_content_by_id(id: str, user=Depends(get_verified_user)):
     file = Files.get_file_by_id(id)
 
     if not file:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ERROR_MESSAGES.NOT_FOUND,
+        )
+
+    file_user = Users.get_user_by_id(file.user_id)
+    if not file_user.role == "admin":
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=ERROR_MESSAGES.NOT_FOUND,

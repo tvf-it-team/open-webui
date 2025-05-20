@@ -108,7 +108,15 @@
 				toast.success($i18n.t('Model updated successfully'));
 			}
 		} else {
-			const res = await createNewModel(localStorage.token, model).catch((error) => {
+			const res = await createNewModel(localStorage.token, {
+				meta: {},
+				id: model.id,
+				name: model.name,
+				base_model_id: null,
+				params: {},
+				access_control: {},
+				...model
+			}).catch((error) => {
 				return null;
 			});
 
@@ -158,7 +166,7 @@
 			hidden: !(model?.meta?.hidden ?? false)
 		};
 
-		console.log(model);
+		console.debug(model);
 
 		toast.success(
 			model.meta.hidden
@@ -487,7 +495,7 @@
 						}}
 					>
 						<div class=" self-center mr-2 font-medium line-clamp-1">
-							{$i18n.t('Export Presets')}
+							{$i18n.t('Export Presets')} ({models.length})
 						</div>
 
 						<div class=" self-center">
