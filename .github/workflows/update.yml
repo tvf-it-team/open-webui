@@ -52,7 +52,7 @@ jobs:
           git commit -m "Apply custom changes to ${{ steps.latest_tag.outputs.latest_tag }}"
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "Apply custom changes to ${{ steps.latest_tag.outputs.latest_tag }}"
