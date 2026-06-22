@@ -1,0 +1,61 @@
+diff --git a/src/lib/components/chat/MessageInput.svelte b/src/lib/components/chat/MessageInput.svelte
+index 9251ba4e4..19f721e63 100644
+--- a/src/lib/components/chat/MessageInput.svelte
++++ b/src/lib/components/chat/MessageInput.svelte
+@@ -38,6 +38,7 @@
+ 	import Tooltip from '../common/Tooltip.svelte';
+ 	import FileItem from '../common/FileItem.svelte';
+ 	import Image from '../common/Image.svelte';
++	import Info from '../icons/Info.svelte';
+ 
+ 	import XMark from '../icons/XMark.svelte';
+ 	import Headphone from '../icons/Headphone.svelte';
+@@ -503,6 +504,15 @@
+ 						}}
+ 					/>
+ 
++					<div
++						class="flex flex-row mx-auto mb-2 w-fit border border-orange-400 rounded-full pr-4 pl-2 py-1 bg-orange-400/10"
++					>
++						<Info className="my-auto h-5 text-orange-400" />
++						<p class="text-sm w-fit h-fit ml-1">
++							Do not enter any client or otherwise sensitive information.
++						</p>
++					</div>
++
+ 					{#if recording}
+ 						<VoiceRecording
+ 							bind:recording
+@@ -1230,7 +1240,7 @@
+ 											</Tooltip>
+ 										{/if}
+ 
+-										{#if !history?.currentId || history.messages[history.currentId]?.done == true}
++										<!-- {#if !history?.currentId || history.messages[history.currentId]?.done == true}
+ 											<Tooltip content={$i18n.t('Record voice')}>
+ 												<button
+ 													id="voice-input-button"
+@@ -1277,12 +1287,12 @@
+ 													</svg>
+ 												</button>
+ 											</Tooltip>
+-										{/if}
++										{/if} -->
+ 
+ 										{#if !history.currentId || history.messages[history.currentId]?.done == true}
+ 											{#if prompt === '' && files.length === 0}
+ 												<div class=" flex items-center">
+-													<Tooltip content={$i18n.t('Call')}>
++													<!-- <Tooltip content={$i18n.t('Call')}>
+ 														<button
+ 															class=" {webSearchEnabled ||
+ 															($settings?.webSearch ?? false) === 'always'
+@@ -1345,7 +1355,7 @@
+ 														>
+ 															<Headphone className="size-5" />
+ 														</button>
+-													</Tooltip>
++													</Tooltip> -->
+ 												</div>
+ 											{:else}
+ 												<div class=" flex items-center">

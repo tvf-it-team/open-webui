@@ -1,0 +1,13 @@
+diff --git a/package.json b/package.json
+index 465fbba0f..fa47735e4 100644
+--- a/package.json
++++ b/package.json
+@@ -5,7 +5,7 @@
+ 	"scripts": {
+ 		"dev": "npm run pyodide:fetch && vite dev --host",
+ 		"dev:5050": "npm run pyodide:fetch && vite dev --port 5050",
+-		"build": "npm run pyodide:fetch && vite build",
++		"build": "NODE_OPTIONS='--max-old-space-size=4096' npm run pyodide:fetch && vite build",
+ 		"preview": "vite preview",
+ 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+ 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",

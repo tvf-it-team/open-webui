@@ -19,6 +19,7 @@
 	import ClockRotateRight from '$lib/components/icons/ClockRotateRight.svelte';
 	import Database from '$lib/components/icons/Database.svelte';
 	import ChevronRight from '$lib/components/icons/ChevronRight.svelte';
+	import Info from '$lib/components/icons/Info.svelte';
 	import ChevronLeft from '$lib/components/icons/ChevronLeft.svelte';
 	import PageEdit from '$lib/components/icons/PageEdit.svelte';
 	import Chats from './InputMenu/Chats.svelte';
@@ -151,6 +152,12 @@
 							<div class="line-clamp-1">{$i18n.t('Upload Files')}</div>
 						</button>
 					</Tooltip>
+					<div class="flex flex-row mx-auto my-2 w-fit border border-orange-400 rounded-full pr-4 pl-2 py-1 bg-orange-400/10">
+						<Info className="my-auto h-5 text-orange-400" />
+						<p class="text-sm w-fit h-fit ml-1">
+							Do not enter any client or otherwise sensitive information.
+						</p>
+					</div>
 
 					<Tooltip
 						content={fileUploadCapableModels.length !== selectedModels.length

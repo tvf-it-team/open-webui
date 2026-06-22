@@ -1,0 +1,13 @@
+diff --git a/src/routes/+layout.svelte b/src/routes/+layout.svelte
+index 530802cc7..6fa31abc4 100644
+--- a/src/routes/+layout.svelte
++++ b/src/routes/+layout.svelte
+@@ -526,7 +526,7 @@
+ 		if (backendConfig) {
+ 			// Save Backend Status to Store
+ 			await config.set(backendConfig);
+-			await WEBUI_NAME.set(backendConfig.name);
++			//await WEBUI_NAME.set(backendConfig.name);
+ 
+ 			if ($config) {
+ 				await setupSocket($config.features?.enable_websocket ?? true);

@@ -1,0 +1,28 @@
+diff --git a/src/lib/components/chat/MessageInput/InputMenu.svelte b/src/lib/components/chat/MessageInput/InputMenu.svelte
+index 07f337dcb..ded00a6bf 100644
+--- a/src/lib/components/chat/MessageInput/InputMenu.svelte
++++ b/src/lib/components/chat/MessageInput/InputMenu.svelte
+@@ -17,6 +17,7 @@
+ 	import CameraSolid from '$lib/components/icons/CameraSolid.svelte';
+ 	import PhotoSolid from '$lib/components/icons/PhotoSolid.svelte';
+ 	import CommandLineSolid from '$lib/components/icons/CommandLineSolid.svelte';
++	import Info from '$lib/components/icons/Info.svelte';
+ 
+ 	const i18n = getContext('i18n');
+ 
+@@ -189,6 +190,15 @@
+ 					<DocumentArrowUpSolid />
+ 					<div class="line-clamp-1">{$i18n.t('Upload Files')}</div>
+ 				</DropdownMenu.Item>
++
++				<div
++					class="flex flex-row mx-auto my-2 w-fit border border-orange-400 rounded-full pr-4 pl-2 py-1 bg-orange-400/10"
++				>
++					<Info className="my-auto h-5 text-orange-400" />
++					<p class="text-sm w-fit h-fit ml-1">
++						Do not enter any client or otherwise sensitive information.
++					</p>
++				</div>
+ 			</Tooltip>
+ 
+ 			{#if $config?.features?.enable_google_drive_integration}
