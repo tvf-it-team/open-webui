@@ -88,12 +88,13 @@ def _convert_column_to_json(table: str, column: str):
                     parsed = json.loads(raw)
                 except Exception:
                     parsed = None
-
+            
             conn.execute(
-                sa.update(sa.table(table, sa.column('id'), t_json))
+                sa.update(sa.table(table, sa.column('id'), sa.column(f'{column}_json', sa.JSON())))
                 .where(sa.column('id') == uid)
-                .values({f'{column}_json': json.dumps(parsed) if parsed else None})
+                .values({f'{column}_json': parsed})
             )
+            
 
         op.drop_column(table, column)
         op.alter_column(table, f'{column}_json', new_column_name=column)
