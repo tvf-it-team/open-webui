@@ -27,7 +27,10 @@ resolve_known_conflicts() {
   conflicts=$(git diff --name-only --diff-filter=U)
   while IFS= read -r f; do
     [[ -z "$f" ]] && continue
-    if [[ "$f" == "package-lock.json" ]]; then
+    if [[ "$f" == .github/workflows/* || "$f" == .github/dependabot.y*ml ]]; then
+      say "Auto-resolving $f: keeping it deleted (no GitHub workflows in the fork)"
+      git rm -q -- "$f"
+    elif [[ "$f" == "package-lock.json" ]]; then
       say "Auto-resolving $f: taking upstream's version"
       git checkout --theirs -- "$f" && git add -- "$f"
     elif [[ -f "custom-changes/$f" ]]; then
@@ -35,6 +38,18 @@ resolve_known_conflicts() {
       git checkout --ours -- "$f" && git add -- "$f"
     fi
   done <<< "$conflicts"
+}
+
+# Keep upstream's GitHub workflows and Dependabot config out of the fork,
+# including any new ones a merge just brought in
+strip_github_automation() {
+  local paths
+  paths=$(git ls-files -- .github/workflows .github/dependabot.yml .github/dependabot.yaml)
+  if [[ -n "$paths" ]]; then
+    say "Removing upstream GitHub workflows / Dependabot config"
+    echo "$paths" | xargs git rm -q --
+    git commit -q -m "Remove upstream GitHub workflows and Dependabot config"
+  fi
 }
 
 # Make sure every branding asset in custom-changes/ is in place
@@ -88,6 +103,7 @@ if [[ "${1:-}" == "--continue" ]]; then
     [[ -z "$remaining" ]] || fail "Still unresolved (git add them when fixed): $(echo $remaining)"
     git commit --no-edit
   fi
+  strip_github_automation
   reapply_assets
   finish
   exit 0
@@ -137,5 +153,6 @@ if ! git merge --no-edit -m "Merge upstream $TAG" "$TAG"; then
   git commit --no-edit
 fi
 
+strip_github_automation
 reapply_assets
 finish
