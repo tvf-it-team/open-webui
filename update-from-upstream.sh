@@ -21,7 +21,10 @@ git config rerere.enabled true
 #   package-lock.json  -> upstream's version (it's generated)
 #   branding assets    -> TVF's version (anything that exists in custom-changes/)
 resolve_known_conflicts() {
-  local f
+  local f conflicts
+  # Capture the list first: reading it live while running git checkout/add
+  # makes two git processes fight over .git/index.lock
+  conflicts=$(git diff --name-only --diff-filter=U)
   while IFS= read -r f; do
     [[ -z "$f" ]] && continue
     if [[ "$f" == "package-lock.json" ]]; then
@@ -31,7 +34,7 @@ resolve_known_conflicts() {
       say "Auto-resolving $f: keeping TVF branding"
       git checkout --ours -- "$f" && git add -- "$f"
     fi
-  done < <(git diff --name-only --diff-filter=U)
+  done <<< "$conflicts"
 }
 
 # Make sure every branding asset in custom-changes/ is in place
@@ -40,7 +43,7 @@ reapply_assets() {
   while IFS= read -r f; do
     cp "custom-changes/$f" "$f"
   done < <(cd custom-changes && find static backend -type f)
-  if ! git diff --quiet; then
+  if [[ -n "$(git status --porcelain -- static backend/open_webui/static)" ]]; then
     say "Re-applying TVF branding assets"
     git add -A static backend/open_webui/static
     git commit -m "Re-apply TVF branding assets"
