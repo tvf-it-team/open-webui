@@ -45,6 +45,7 @@
 	let confirmPassword = '';
 
 	let ldapUsername = '';
+	const USERNAME_HINT = 'Please enter your username, not your email address.';
 
 	let submitting = false;
 
@@ -111,6 +112,10 @@
 	};
 
 	const ldapSignInHandler = async () => {
+		if (ldapUsername.includes('@')) {
+			toast.error(USERNAME_HINT);
+			return;
+		}
 		const sessionUser = await ldapUserSignIn(ldapUsername, password).catch((error) => {
 			toast.error(`${error}`);
 			return null;
@@ -374,6 +379,9 @@
 													placeholder={$i18n.t('Enter Your Username')}
 													required
 												/>
+{#if ldapUsername.includes('@')}
+	<div class="mt-1 text-xs text-red-500">{USERNAME_HINT}</div>
+{/if}
 											</div>
 										{:else}
 											<div class="mb-2">
